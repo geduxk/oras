@@ -17,6 +17,14 @@ html,body{margin:0;background:transparent;font:600 13px/1.25 system-ui,Segoe UI,
 body.icon .txt{display:none}
 body.icon .w{padding:0;justify-content:center}
 body.icon .ic{width:100vmin;height:100vmin}
+body.info .ic{display:none}
+body.info .w{padding:2px 6px}
+body.info .txt{display:flex;align-items:center;gap:12px;width:100%}
+body.info .h{margin:0 0 0 auto}
+body.info .t{font-size:16px}
+body.info .s{font-size:13px}
+body.info .h div{font-size:12px}
+body.info .h svg{width:26px;height:26px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes drift{from{transform:translateX(-2px)}to{transform:translateX(2px)}}
 @keyframes fall{from{transform:translateY(-3px);opacity:0}30%{opacity:1}to{transform:translateY(5px);opacity:0}}
@@ -32,14 +40,14 @@ body.icon .ic{width:100vmin;height:100vmin}
 <div class="w">
   <div class="ic" id="ic"></div>
   <div class="txt">
-    <div class="t" id="t">Kraunama…</div>
-    <div class="s" id="s"></div>
+    <div><div class="t" id="t">Kraunama…</div>
+    <div class="s" id="s"></div></div>
     <div class="h" id="h"></div>
   </div>
 </div>
 <script>
 const LAT=55.508496, LON=23.773687;
-if(new URLSearchParams(location.search).has('icon'))document.body.classList.add('icon');
+const Q=new URLSearchParams(location.search);if(Q.has('icon'))document.body.classList.add('icon');if(Q.has('info'))document.body.classList.add('info');
 
 const TXT={0:'Giedra',1:'Mažai debesuota',2:'Debesuota su pragiedruliais',3:'Apsiniaukę',45:'Rūkas',48:'Rūkas su šerkšnu',
 51:'Silpna dulksna',53:'Dulksna',55:'Smarki dulksna',56:'Lijundra',57:'Smarki lijundra',
@@ -73,7 +81,7 @@ async function load(){
     document.getElementById('ic').innerHTML=svg(c.weather_code,c.is_day);
     document.getElementById('ic').title=TXT[c.weather_code]||'';
     document.getElementById('t').textContent=TXT[c.weather_code]||'—';
-    document.getElementById('s').textContent=`Vėjas ${c.wind_speed_10m.toFixed(1)} m/s`+(c.precipitation>0?` · ${c.precipitation} mm`:'');
+    document.getElementById('s').textContent=`Lauke ${Math.round(c.temperature_2m)}° · vėjas ${c.wind_speed_10m.toFixed(1)} m/s`+(c.precipitation>0?` · ${c.precipitation} mm`:'');
     let h='';for(let i=3;i<=9;i+=3){const t=d.hourly.time[i];if(!t)break;
       h+=`<div>${t.slice(11,13)} h${svg(d.hourly.weather_code[i],d.hourly.is_day[i])}${Math.round(d.hourly.temperature_2m[i])}°</div>`}
     document.getElementById('h').innerHTML=h;
