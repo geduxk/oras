@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Oras – Gudžiūnai</title>
+<title>Oras</title>
 <style>
 html,body{margin:0;background:transparent;font:600 13px/1.25 system-ui,Segoe UI,Roboto,sans-serif;color:#0f172a;overflow:hidden}
 .w{display:flex;align-items:center;gap:10px;padding:6px}
@@ -46,8 +46,10 @@ body.info .h svg{width:26px;height:26px}
   </div>
 </div>
 <script>
-const LAT=55.508496, LON=23.773687;
-const Q=new URLSearchParams(location.search);if(Q.has('icon'))document.body.classList.add('icon');if(Q.has('info'))document.body.classList.add('info');
+const Q=new URLSearchParams(location.search);
+const num=(k,d)=>{const v=parseFloat(Q.get(k));return isFinite(v)?v:d;};
+const LAT=num('lat',55.508496), LON=num('lon',23.773687);
+const TZ=Q.get('tz')||'Europe/Vilnius';if(Q.has('icon'))document.body.classList.add('icon');if(Q.has('info'))document.body.classList.add('info');
 
 const TXT={0:'Giedra',1:'Mažai debesuota',2:'Debesuota su pragiedruliais',3:'Apsiniaukę',45:'Rūkas',48:'Rūkas su šerkšnu',
 51:'Silpna dulksna',53:'Dulksna',55:'Smarki dulksna',56:'Lijundra',57:'Smarki lijundra',
@@ -76,7 +78,7 @@ function svg(c,day){
 }
 async function load(){
   try{
-    const u=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code,is_day,wind_speed_10m,precipitation&hourly=weather_code,temperature_2m,is_day&forecast_hours=12&wind_speed_unit=ms&timezone=Europe%2FVilnius`;
+    const u=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code,is_day,wind_speed_10m,precipitation&hourly=weather_code,temperature_2m,is_day&forecast_hours=12&wind_speed_unit=ms&timezone=${encodeURIComponent(TZ)}`;
     const d=await (await fetch(u)).json();const c=d.current;
     document.getElementById('ic').innerHTML=svg(c.weather_code,c.is_day);
     document.getElementById('ic').title=TXT[c.weather_code]||'';
