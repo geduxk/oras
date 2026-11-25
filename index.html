@@ -25,6 +25,9 @@ body.info .t{font-size:16px}
 body.info .s{font-size:13px}
 body.info .h div{font-size:12px}
 body.info .h svg{width:26px;height:26px}
+body.date .w{display:none}
+#dt{display:none;text-align:right;font-weight:500;font-size:13px;color:#64748b;padding:2px 2px 0 0;white-space:nowrap}
+body.date #dt{display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes drift{from{transform:translateX(-2px)}to{transform:translateX(2px)}}
 @keyframes fall{from{transform:translateY(-3px);opacity:0}30%{opacity:1}to{transform:translateY(5px);opacity:0}}
@@ -37,6 +40,7 @@ body.info .h svg{width:26px;height:26px}
 </style>
 </head>
 <body>
+<div id="dt"></div>
 <div class="w">
   <div class="ic" id="ic"></div>
   <div class="txt">
@@ -89,7 +93,14 @@ async function load(){
     document.getElementById('h').innerHTML=h;
   }catch(e){document.getElementById('t').textContent='Nėra ryšio';}
 }
-load();setInterval(load,15*60*1000);
+function showDate(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const d=new Date(Date.UTC(+p.year,+p.month-1,+p.day));
+  const WD=['Sk','Pr','An','Tr','Kt','Pn','Št'],MN=['saus.','vas.','kov.','bal.','geg.','birž.','liep.','rugp.','rugs.','spal.','lapkr.','gruod.'];
+  document.getElementById('dt').textContent=WD[d.getUTCDay()]+', '+MN[d.getUTCMonth()]+' '+d.getUTCDate();
+}
+if(Q.has('date')){document.body.classList.add('date');showDate();setInterval(showDate,60*1000);}
+else{load();setInterval(load,15*60*1000);}
 </script>
 </body>
 </html>
