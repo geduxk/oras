@@ -80,18 +80,31 @@ function svg(c,day){
   else s=CLOUD('#cbd5e1',0,-6)+'<path class="bolt" d="M34 44l-8 12h7l-3 8 10-13h-7l4-7z" fill="#f59e0b"/>';
   return `<svg viewBox="0 0 64 64">${s}</svg>`;
 }
-async function load(){
+const CK='wx_'+LAT.toFixed(3)+'_'+LON.toFixed(3),TTL=15*60*1000,MAXOLD=6*3600*1000;
+function cget(){try{return JSON.parse(localStorage.getItem(CK)||'null')}catch(e){return null}}
+function cset(d){try{localStorage.setItem(CK,JSON.stringify({at:Date.now(),d}))}catch(e){}}
+async function getData(){
+  const c=cget();if(c&&Date.now()-c.at<TTL)return c.d;
   try{
     const u=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code,is_day,wind_speed_10m,precipitation&hourly=weather_code,temperature_2m,is_day&forecast_hours=12&wind_speed_unit=ms&timezone=${encodeURIComponent(TZ)}`;
-    const d=await (await fetch(u)).json();const c=d.current;
+    const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();if(!d.current)throw new Error('no data');cset(d);return d;
+  }catch(e){if(c&&Date.now()-c.at<MAXOLD)return c.d;throw e}
+}
+function render(d){
+    const c=d.current;
     document.getElementById('ic').innerHTML=svg(c.weather_code,c.is_day);
     document.getElementById('ic').title=TXT[c.weather_code]||'';
     document.getElementById('t').textContent=TXT[c.weather_code]||'—';
     document.getElementById('s').textContent=`Lauke ${Math.round(c.temperature_2m)}° · vėjas ${c.wind_speed_10m.toFixed(1)} m/s`+(c.precipitation>0?` · ${c.precipitation} mm`:'');
-    let h='';for(let i=3;i<=9;i+=3){const t=d.hourly.time[i];if(!t)break;
+    const nowH=new Intl.DateTimeFormat('sv-SE',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).format(new Date()).replace(' ','T').slice(0,13);
+    let i0=d.hourly.time.findIndex(t=>t.slice(0,13)>=nowH);if(i0<0)i0=0;
+    let h='';for(let k=3;k<=9;k+=3){const i=i0+k,t=d.hourly.time[i];if(!t)break;
       h+=`<div>${t.slice(11,13)} h${svg(d.hourly.weather_code[i],d.hourly.is_day[i])}${Math.round(d.hourly.temperature_2m[i])}°</div>`}
     document.getElementById('h').innerHTML=h;
-  }catch(e){document.getElementById('t').textContent='Nėra ryšio';}
+}
+async function load(){
+  try{render(await getData());}catch(e){document.getElementById('t').textContent='Nėra ryšio';}
 }
 function showDate(){
   const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
